@@ -1,12 +1,40 @@
 import { useForm} from 'react-hook-form'
 import Error from './Error'
+import type { DraftUser } from '../types'
+import { useUserStore } from '../store/store'
+import { useEffect } from 'react'
+import { toast } from 'react-toastify'
 export default function TareasForm() {
   
-  const { register, handleSubmit, formState: {errors} } = useForm()
+  const addUser = useUserStore(state => state.addUser)
+  const activeId = useUserStore(state => state.activeId)
+  const users = useUserStore(state => state.users)
+  const updateUser = useUserStore(state => state.updateUser)
+
+  const { register, handleSubmit, setValue, formState: {errors}, reset } = useForm<DraftUser>()
   
-  const registerUser = () => {
-    console.log("Nuevo ususario")
+  useEffect(() => {
+    if(activeId) {
+      const activeUser = users.filter(user => user.id===activeId)[0]
+      setValue('name', activeUser.name)
+      setValue('area', activeUser.area)
+      setValue('date', activeUser.date)
+      setValue('email', activeUser.email)
+      setValue('issues', activeUser.issues)
+    }
+  },[activeId])
+  
+  const registerUser = (data: DraftUser) => {
+    if(activeId){
+      updateUser(data)
+      toast.success('Tarea actualizada correctamente')
+    } else{
+      addUser(data)
+      toast.success('Tarea registrada correctamente')
+    }
+    reset()
   }
+
   return (
     <div className="md:w-1/2 lg:w-2/5 mx-5">
       <h2 className="font-black text-3xl text-center">Seguimiento diario</h2>
@@ -33,25 +61,25 @@ export default function TareasForm() {
             })}
             />
             {errors.name && (
-              <Error>{errors.name?.message?.toString()}</Error>
+              <Error>{errors.name?.message}</Error>
             )}
         </div>
 
         <div className="mb-5">
-          <label htmlFor="caretaker" className="text-sm uppercase font-bold">
+          <label htmlFor="area" className="text-sm uppercase font-bold">
             Area/Materia
           </label>
           <input
-            id="caretaker"
+            id="area"
             className="w-full p-3 border border-gray-100"
             type="text"
             placeholder="Nombre de area/materia"
-            {...register('caretaker', {
+            {...register('area', {
               required: 'El nombre de area es obligatorio'
             })}
           />
-          {errors.caretaker && (
-            <Error>{errors.caretaker?.message?.toString()}</Error>
+          {errors.area && (
+            <Error>{errors.area?.message}</Error>
           )}
           
         </div>
@@ -74,7 +102,7 @@ export default function TareasForm() {
             })} 
           />
           {errors.email && (
-            <Error>{errors.email?.message?.toString()}</Error>
+            <Error>{errors.email?.message}</Error>
           )}
         </div>
 
@@ -91,7 +119,7 @@ export default function TareasForm() {
             })}
           />
           {errors.date && (
-            <Error>{errors.date?.message?.toString()}</Error>
+            <Error>{errors.date?.message}</Error>
           )}
         </div>
 
@@ -108,7 +136,7 @@ export default function TareasForm() {
             })}
           />
           {errors.issues && (
-            <Error>{errors.issues?.message?.toString()}</Error>
+            <Error>{errors.issues?.message}</Error>
           )}
         </div>
 
